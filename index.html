@@ -47,7 +47,8 @@
   header.app-header .brand{display:flex; align-items:baseline; gap:12px;}
   header.app-header h1{font-size:28px; letter-spacing:-0.01em;}
   header.app-header .tag{font-size:13px; color:var(--ink-soft);}
-  .week-nav{display:flex; align-items:center; gap:10px; font-size:14px; color:var(--ink-soft); flex-wrap:wrap;}
+  .week-nav{display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:14px; color:var(--ink-soft); flex-wrap:wrap;}
+  .week-switch{display:flex; align-items:center; gap:10px;}
   .week-nav button{
     border:1px solid var(--line); background:var(--panel); color:var(--ink);
     width:32px;height:32px; border-radius:8px; cursor:pointer; font-size:16px; line-height:1;
@@ -55,10 +56,19 @@
   .week-nav button:hover{border-color:var(--mustard-deep);}
   .week-nav .week-label{font-weight:600; color:var(--ink);}
   .reset-link{
-    border:none; background:none; color:var(--ink-soft); font-size:12.5px;
-    text-decoration:underline; cursor:pointer; padding:0;
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--ink-soft);
+    font-size:12px;
+    font-weight:600;
+    font-family:inherit;
+    text-decoration:none;
+    cursor:pointer;
+    padding:7px 12px;
+    border-radius:8px;
+    white-space:nowrap;
   }
-  .reset-link:hover{color:var(--rust);}
+  .reset-link:hover{border-color:var(--rust); color:var(--rust);}
 
   main{
     display:grid;
@@ -249,6 +259,9 @@
   }
 
   @media (max-width: 700px){
+    header.app-header{ padding:20px 16px 16px; }
+    header.app-header .brand{ flex-direction:column; gap:2px; }
+    .week-nav{ width:100%; justify-content:space-between; }
     table.matrix{ display:none; }
     .day-view{ display:block; }
     .checklist-wrap{ overflow-x:visible; }
@@ -300,10 +313,12 @@
     <span class="tag">marque o que vai usar em cada dia e a compra da semana é gerada sozinha</span>
   </div>
   <div class="week-nav">
-    <button id="prevWeek" aria-label="Semana anterior">‹</button>
-    <span class="week-label" id="weekLabel">Semana atual</span>
-    <button id="nextWeek" aria-label="Próxima semana">›</button>
-    <button class="reset-link" id="resetBtn">limpar marcações</button>
+    <div class="week-switch">
+      <button id="prevWeek" aria-label="Semana anterior">‹</button>
+      <span class="week-label" id="weekLabel">Semana atual</span>
+      <button id="nextWeek" aria-label="Próxima semana">›</button>
+    </div>
+    <button class="reset-link" id="resetBtn">Limpar marcações</button>
   </div>
 </header>
 
