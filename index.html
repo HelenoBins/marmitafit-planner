@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MarmitaFit Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #efeae0;
+    --panel: #faf7f0;
+    --ink: #2a2620;
+    --ink-soft: #6b6355;
+    --mustard: #b9812a;
+    --mustard-deep: #8f621d;
+    --sage: #5c7a5b;
+    --sage-bg: #e9efe6;
+    --rust: #a34a2e;
+    --line: #ddd4c0;
+    --line-soft: #e8e1d0;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.5;
+  }
+  h1,h2,h3{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    margin:0;
+  }
+  header.app-header{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:12px;
+    padding:28px clamp(16px,4vw,48px) 20px;
+    border-bottom:1px solid var(--line);
+  }
+  header.app-header .brand{display:flex; align-items:baseline; gap:12px;}
+  header.app-header h1{font-size:28px; letter-spacing:-0.01em;}
+  header.app-header .tag{font-size:13px; color:var(--ink-soft);}
+  .week-nav{display:flex; align-items:center; gap:10px; font-size:14px; color:var(--ink-soft); flex-wrap:wrap;}
+  .week-nav button{
+    border:1px solid var(--line); background:var(--panel); color:var(--ink);
+    width:32px;height:32px; border-radius:8px; cursor:pointer; font-size:16px; line-height:1;
+  }
+  .week-nav button:hover{border-color:var(--mustard-deep);}
+  .week-nav .week-label{font-weight:600; color:var(--ink);}
+  .reset-link{
+    border:none; background:none; color:var(--ink-soft); font-size:12.5px;
+    text-decoration:underline; cursor:pointer; padding:0;
+  }
+  .reset-link:hover{color:var(--rust);}
+
+  main{
+    display:grid;
+    grid-template-columns: 1fr 300px;
+    gap:28px;
+    padding:24px clamp(16px,4vw,48px) 60px;
+    align-items:start;
+  }
+  @media (max-width: 900px){ main{grid-template-columns:1fr;} }
+
+  .checklist-wrap{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow-x:auto;
+  }
+  table.matrix{
+    border-collapse:collapse;
+    width:100%;
+    min-width:980px;
+    font-size:13.5px;
+  }
+  table.matrix thead th{
+    position:sticky; top:0;
+    background:var(--panel);
+    padding:10px 6px;
+    text-align:center;
+    font-size:11.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    border-bottom:1px solid var(--line);
+    z-index:1;
+  }
+  table.matrix thead tr.day-row th{
+    font-size:12px;
+    border-right:1px solid var(--line-soft);
+  }
+  table.matrix thead tr.meal-row th{
+    font-size:10px;
+    font-weight:500;
+    padding:6px 4px 10px;
+    color:var(--ink-soft);
+    text-transform:none;
+    letter-spacing:0;
+  }
+  table.matrix thead tr.meal-row th:nth-child(odd){border-left:1px solid var(--line-soft);}
+  table.matrix thead th.item-head{
+    text-align:left;
+    padding-left:16px;
+    position:sticky; left:0;
+    background:var(--panel);
+    z-index:2;
+  }
+  tr.category-row td{
+    padding:14px 16px 6px;
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:14.5px;
+    color:var(--mustard-deep);
+    border-bottom:1px solid var(--line-soft);
+  }
+  tr.item-row td{
+    padding:6px 4px;
+    text-align:center;
+    border-bottom:1px solid var(--line-soft);
+  }
+  tr.item-row td.cell-almoco{border-left:1px solid var(--line-soft);}
+  tr.item-row td.item-name{
+    text-align:left;
+    padding-left:16px;
+    font-weight:500;
+    position:sticky; left:0;
+    background:var(--panel);
+    white-space:nowrap;
+  }
+  tr.item-row td.item-name .qtd{
+    display:block;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    font-weight:400;
+  }
+  tr.item-row input[type=checkbox]{
+    width:17px; height:17px;
+    accent-color:var(--sage);
+    cursor:pointer;
+  }
+  tr.item-row .remove-item{
+    border:none; background:none; color:var(--ink-soft);
+    cursor:pointer; font-size:12px; margin-left:8px;
+  }
+  tr.item-row .remove-item:hover{color:var(--rust);}
+
+  .add-item-row{
+    padding:14px 16px;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center;
+    border-top:1px solid var(--line);
+  }
+  .add-item-row select, .add-item-row input{
+    padding:7px 9px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    font-family:inherit;
+    font-size:13px;
+    background:#fff;
+  }
+  .add-item-row input[type=text]{width:140px;}
+  .add-item-row input[type=number]{width:70px;}
+  .add-item-row .btn{white-space:nowrap;}
+
+  aside.shopping{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:20px;
+    position:sticky;
+    top:24px;
+  }
+  aside.shopping h2{font-size:19px; margin-bottom:2px;}
+  aside.shopping .sub{font-size:12.5px; color:var(--ink-soft); margin-bottom:14px;}
+  .shopping-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px;}
+  .shopping-list li{
+    display:flex; align-items:center; gap:10px; font-size:13.5px;
+    border-bottom:1px dashed var(--line-soft); padding-bottom:8px;
+  }
+  .shopping-list li input[type=checkbox]{accent-color:var(--sage); width:15px;height:15px; flex-shrink:0;}
+  .shopping-list li .qty{font-weight:600; color:var(--mustard-deep); min-width:64px;}
+  .shopping-list li.checked span, .shopping-list li.checked .qty{
+    text-decoration:line-through; color:var(--ink-soft);
+  }
+  .shopping-empty{font-size:13px; color:var(--ink-soft); padding:10px 0;}
+
+  .btn{
+    border:none; border-radius:8px; padding:8px 14px; font-size:13px;
+    font-weight:600; cursor:pointer; font-family:inherit;
+  }
+  .btn-primary{background:var(--mustard-deep); color:#fff;}
+  .btn-primary:hover{background:#734f17;}
+
+  footer{
+    text-align:center; font-size:12px; color:var(--ink-soft);
+    padding:18px; border-top:1px solid var(--line);
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <h1>MarmitaFit Planner</h1>
+    <span class="tag">marque o que vai usar em cada dia e a compra da semana é gerada sozinha</span>
+  </div>
+  <div class="week-nav">
+    <button id="prevWeek" aria-label="Semana anterior">‹</button>
+    <span class="week-label" id="weekLabel">Semana atual</span>
+    <button id="nextWeek" aria-label="Próxima semana">›</button>
+    <button class="reset-link" id="resetBtn">limpar marcações</button>
+  </div>
+</header>
+
+<main>
+  <div class="checklist-wrap">
+    <table class="matrix">
+      <thead>
+        <tr class="day-row">
+          <th class="item-head" rowspan="2">Item</th>
+          <th colspan="2">Seg</th><th colspan="2">Ter</th><th colspan="2">Qua</th>
+          <th colspan="2">Qui</th><th colspan="2">Sex</th><th colspan="2">Sáb</th><th colspan="2">Dom</th>
+        </tr>
+        <tr class="meal-row">
+          <th>Alm</th><th>Jan</th><th>Alm</th><th>Jan</th><th>Alm</th><th>Jan</th>
+          <th>Alm</th><th>Jan</th><th>Alm</th><th>Jan</th><th>Alm</th><th>Jan</th><th>Alm</th><th>Jan</th>
+        </tr>
+      </thead>
+      <tbody id="matrixBody"></tbody>
+    </table>
+    <div class="add-item-row">
+      <select id="novaCategoria">
+        <option>Proteínas</option>
+        <option>Carboidratos</option>
+        <option>Legumes e verduras</option>
+        <option>Outros</option>
+      </select>
+      <input type="text" id="novoNome" placeholder="Nome do item">
+      <input type="number" id="novaQtd" placeholder="Qtd." min="0" step="1">
+      <select id="novaUnidade">
+        <option value="g">g</option>
+        <option value="kg">kg</option>
+        <option value="un">un</option>
+        <option value="dente">dente</option>
+        <option value="ml">ml</option>
+        <option value="l">l</option>
+      </select>
+      <button class="btn btn-primary" id="addItemBtn">+ Adicionar item</button>
+    </div>
+  </div>
+
+  <aside class="shopping">
+    <h2>Compra programada</h2>
+    <div class="sub">Calculada a partir do que foi marcado na semana</div>
+    <ul class="shopping-list" id="shoppingList"></ul>
+  </aside>
+</main>
+
+<footer>MarmitaFit Planner — HTML5, CSS3, JavaScript e PHP</footer>
+
+<script>
+const CAT_ORDER = ["Proteínas","Carboidratos","Legumes e verduras","Outros"];
+const STORAGE_CATALOGO = "marmitafit_catalogo_v2";
+const STORAGE_SELECOES = "marmitafit_selecoes_v2";
+const REFEICOES = ["Almoço","Jantar"];
+
+const CATALOGO_PADRAO = [
+  {id:"carne_moida", nome:"Carne moída", categoria:"Proteínas", qtd:150, unidade:"g"},
+  {id:"carne_cubos", nome:"Carne em cubos (de panela)", categoria:"Proteínas", qtd:180, unidade:"g"},
+  {id:"frango_desfiado", nome:"Frango desfiado", categoria:"Proteínas", qtd:150, unidade:"g"},
+  {id:"frango_file", nome:"Frango em filé", categoria:"Proteínas", qtd:150, unidade:"g"},
+  {id:"carne_suina", nome:"Carne suína", categoria:"Proteínas", qtd:150, unidade:"g"},
+  {id:"peixe", nome:"Peixe", categoria:"Proteínas", qtd:150, unidade:"g"},
+  {id:"ovo", nome:"Ovo", categoria:"Proteínas", qtd:2, unidade:"un"},
+
+  {id:"arroz", nome:"Arroz", categoria:"Carboidratos", qtd:100, unidade:"g"},
+  {id:"feijao", nome:"Feijão", categoria:"Carboidratos", qtd:80, unidade:"g"},
+  {id:"macarrao", nome:"Macarrão", categoria:"Carboidratos", qtd:100, unidade:"g"},
+  {id:"pure_batata", nome:"Purê de batata", categoria:"Carboidratos", qtd:150, unidade:"g"},
+  {id:"batata_cozida", nome:"Batata cozida", categoria:"Carboidratos", qtd:150, unidade:"g"},
+  {id:"mandioca", nome:"Mandioca", categoria:"Carboidratos", qtd:150, unidade:"g"},
+
+  {id:"cenoura", nome:"Cenoura", categoria:"Legumes e verduras", qtd:50, unidade:"g"},
+  {id:"abobrinha", nome:"Abobrinha", categoria:"Legumes e verduras", qtd:50, unidade:"g"},
+  {id:"brocolis", nome:"Brócolis", categoria:"Legumes e verduras", qtd:50, unidade:"g"},
+  {id:"vagem", nome:"Vagem", categoria:"Legumes e verduras", qtd:50, unidade:"g"},
+  {id:"couve", nome:"Couve", categoria:"Legumes e verduras", qtd:30, unidade:"g"},
+  {id:"tomate", nome:"Tomate", categoria:"Outros", qtd:1, unidade:"un"},
+  {id:"cebola", nome:"Cebola", categoria:"Outros", qtd:1, unidade:"un"},
+  {id:"alho", nome:"Alho", categoria:"Outros", qtd:2, unidade:"dente"},
+];
+
+function loadCatalogo(){
+  try{
+    const raw = localStorage.getItem(STORAGE_CATALOGO);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return CATALOGO_PADRAO;
+}
+function saveCatalogo(cat){ localStorage.setItem(STORAGE_CATALOGO, JSON.stringify(cat)); }
+
+function loadSelecoes(){
+  try{
+    const raw = localStorage.getItem(STORAGE_SELECOES);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return {};
+}
+function saveSelecoes(sel){ localStorage.setItem(STORAGE_SELECOES, JSON.stringify(sel)); }
+
+let catalogo = loadCatalogo();
+let selecoes = loadSelecoes(); // { itemId: [bool x7] }
+let comprados = {}; // controle visual da lista de compras (não persistido entre sessões)
+
+function getSelecao(itemId){
+  if(!selecoes[itemId]) selecoes[itemId] = new Array(14).fill(false);
+  return selecoes[itemId];
+}
+// slot = dia*2 + refeicao (0=Almoço, 1=Jantar)
+function slotIndex(dia, refeicao){ return dia*2 + refeicao; }
+
+function renderMatrix(){
+  const body = document.getElementById("matrixBody");
+  body.innerHTML = "";
+  CAT_ORDER.forEach(cat=>{
+    const itens = catalogo.filter(i=>i.categoria===cat);
+    if(itens.length===0) return;
+    const trCat = document.createElement("tr");
+    trCat.className = "category-row";
+    trCat.innerHTML = `<td colspan="8">${cat}</td>`;
+    body.appendChild(trCat);
+
+    itens.forEach(item=>{
+      const tr = document.createElement("tr");
+      tr.className = "item-row";
+      const sel = getSelecao(item.id);
+      let cells = `<td class="item-name">${item.nome}<span class="qtd">${item.qtd} ${item.unidade} / marmita</span>
+        <button class="remove-item" data-id="${item.id}" title="Remover item">✕</button></td>`;
+      for(let d=0; d<7; d++){
+        for(let r=0; r<2; r++){
+          const slot = slotIndex(d, r);
+          const cls = r===0 ? ' class="cell-almoco"' : '';
+          cells += `<td${cls}><input type="checkbox" data-id="${item.id}" data-day="${d}" data-refeicao="${r}" ${sel[slot] ? "checked" : ""}></td>`;
+        }
+      }
+      tr.innerHTML = cells;
+      body.appendChild(tr);
+    });
+  });
+
+  body.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener("change", e=>{
+      const id = e.target.dataset.id;
+      const day = parseInt(e.target.dataset.day, 10);
+      const refeicao = parseInt(e.target.dataset.refeicao, 10);
+      getSelecao(id)[slotIndex(day, refeicao)] = e.target.checked;
+      saveSelecoes(selecoes);
+      renderShoppingList();
+    });
+  });
+  body.querySelectorAll('.remove-item').forEach(btn=>{
+    btn.addEventListener("click", e=>{
+      const id = e.target.dataset.id;
+      catalogo = catalogo.filter(i=>i.id!==id);
+      delete selecoes[id];
+      saveCatalogo(catalogo);
+      saveSelecoes(selecoes);
+      renderMatrix();
+      renderShoppingList();
+    });
+  });
+}
+
+function formatQtd(total, unidade){
+  if(unidade==="g" && total>=1000) return (total/1000).toFixed(total%1000===0?0:1) + " kg";
+  if(unidade==="ml" && total>=1000) return (total/1000).toFixed(total%1000===0?0:1) + " l";
+  if(unidade==="dente") return total + (total===1 ? " dente" : " dentes");
+  if(unidade==="un") return total + " un";
+  return total + " " + unidade;
+}
+
+function renderShoppingList(){
+  const list = document.getElementById("shoppingList");
+  list.innerHTML = "";
+  const linhas = [];
+  catalogo.forEach(item=>{
+    const sel = getSelecao(item.id);
+    const vezes = sel.filter(Boolean).length;
+    if(vezes>0){
+      linhas.push({id:item.id, nome:item.nome, total: item.qtd*vezes, unidade:item.unidade, vezes});
+    }
+  });
+  if(linhas.length===0){
+    list.innerHTML = `<div class="shopping-empty">Marque os itens que vai usar em cada dia para gerar a lista.</div>`;
+    return;
+  }
+  linhas.forEach(l=>{
+    const li = document.createElement("li");
+    li.className = comprados[l.id] ? "checked" : "";
+    li.innerHTML = `<input type="checkbox" ${comprados[l.id] ? "checked" : ""}>
+      <span class="qty">${formatQtd(l.total, l.unidade)}</span>
+      <span>${l.nome} <small style="color:var(--ink-soft)">(${l.vezes} marmita${l.vezes===1?"":"s"} na semana)</small></span>`;
+    li.querySelector("input").addEventListener("change", e=>{
+      comprados[l.id] = e.target.checked;
+      li.classList.toggle("checked", e.target.checked);
+    });
+    list.appendChild(li);
+  });
+}
+
+document.getElementById("addItemBtn").addEventListener("click", ()=>{
+  const categoria = document.getElementById("novaCategoria").value;
+  const nome = document.getElementById("novoNome").value.trim();
+  const qtd = parseFloat(document.getElementById("novaQtd").value);
+  const unidade = document.getElementById("novaUnidade").value;
+  if(!nome || !qtd || qtd<=0) return;
+  const id = "custom_" + nome.toLowerCase().replace(/[^a-z0-9]+/g,"_") + "_" + Date.now();
+  catalogo.push({id, nome, categoria, qtd, unidade});
+  saveCatalogo(catalogo);
+  document.getElementById("novoNome").value = "";
+  document.getElementById("novaQtd").value = "";
+  renderMatrix();
+  renderShoppingList();
+});
+
+document.getElementById("resetBtn").addEventListener("click", ()=>{
+  selecoes = {};
+  comprados = {};
+  saveSelecoes(selecoes);
+  renderMatrix();
+  renderShoppingList();
+});
+
+let weekOffset = 0;
+function updateWeekLabel(){
+  const label = document.getElementById("weekLabel");
+  if(weekOffset === 0) label.textContent = "Semana atual";
+  else label.textContent = weekOffset > 0 ? `${weekOffset} semana(s) à frente` : `${Math.abs(weekOffset)} semana(s) atrás`;
+}
+document.getElementById("prevWeek").addEventListener("click", ()=>{weekOffset--; updateWeekLabel();});
+document.getElementById("nextWeek").addEventListener("click", ()=>{weekOffset++; updateWeekLabel();});
+
+renderMatrix();
+renderShoppingList();
+</script>
+</body>
+</html>
